@@ -733,12 +733,12 @@ FFNN1.reset_weights() #reset weights, as to start fresh every time
 
 scheduler = Adagrad(eta=1e-3) # creates a schedueler which controls the learning rate decay. Set this equal to the scheduele mode, i.e. Adagrad, Constant, ADAM, with the paramaters requiered for this scheduele
 
-varlist = np.logspace(-9,-.0005, 10) #list of variables to be tested. Set third float to 1 if nothing is to be tested
+varlist = np.logspace(-9,-.0005, 1) #list of variables to be tested. Set third float to 1 if nothing is to be tested
 MSElist = [] #list of MSE. Not sure if this is usefull.
 
 for eta in varlist: # starts a loop to test variables.
     FFNN1.reset_weights() #important to reset weights, as to not generate data based on previous runs
-    scores = FFNN1.fit(X_train,y_train, Adagrad(eta), epochs = 100) #train data to the fit. Using the training data here, not sure if this is the best option. Many parameters can be set to optimize the fit, such as eta, lambda, momentum.
+    scores = FFNN1.fit(X_train,y_train, Adagrad(eta = 0.01), epochs = 1000) #train data to the fit. Using the training data here, not sure if this is the best option. Many parameters can be set to optimize the fit, such as eta, lambda, momentum.
         
     y2 = FFNN1.predict(X) #creates a prediction from the training. Hopefully this is working, but not completely sure.
     
@@ -752,4 +752,4 @@ plt.plot(x,y, label = 'data') #plot data
 plt.plot(x,y2, 'ro', label = 'fit' ) #plot fit
 plt.legend()
 plt.show()
-plt.plot(np.log10(varlist),MSElist) #plot MSE for parameter testing
+#plt.plot(np.log10(varlist),MSElist) #plot MSE for parameter testing
