@@ -41,7 +41,7 @@ for i, eta in enumerate(eta_vals):
         
         print("Learning rate  = ", eta)
         print("Lambda = ", lmbd)
-        print("Accuracy score on test set: ", r2_score(y_test, test_predict))
+        print("Accuracy score on test set: ", mean_squared_error(y_test, test_predict))
 
 train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
 test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
