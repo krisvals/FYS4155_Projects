@@ -15,9 +15,11 @@ from copy import deepcopy, copy
 from typing import Tuple, Callable
 from sklearn.utils import resample
 import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 warnings.simplefilter("error")
-
+warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 def CostOLS(target):
     
@@ -736,20 +738,63 @@ scheduler = Adagrad(eta=1e-3) # creates a schedueler which controls the learning
 varlist = np.logspace(-9,-.0005, 1) #list of variables to be tested. Set third float to 1 if nothing is to be tested
 MSElist = [] #list of MSE. Not sure if this is usefull.
 
-for eta in varlist: # starts a loop to test variables.
-    FFNN1.reset_weights() #important to reset weights, as to not generate data based on previous runs
-    scores = FFNN1.fit(X_train,y_train, Adagrad(eta = 0.01), epochs = 1000) #train data to the fit. Using the training data here, not sure if this is the best option. Many parameters can be set to optimize the fit, such as eta, lambda, momentum.
+M = 10
+lmbd_vals = [1E2,2E2,3E2,4E2,5E3] 
+eta_vals = [1e-20, 1e-16, 1e-14, 1e-10, 1e-1] #Can be adjusted, but code gets very slow for eta below 1e-10
+epochs = 100
+
+DNN_numpy = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
+train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
+test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
+
+for i, etaa in enumerate(eta_vals):
+    for j, lmbd in enumerate(lmbd_vals): # starts a loop to test variables.
+        FFNN1.reset_weights() #important to reset weights, as to not generate data based on previous runs
+        FFNN1.fit(X_train,y_train, Adagrad(eta = (etaa)), epochs = int(lmbd)) #train data to the fit. Using the training data here, not sure if this is the best option. Many parameters can be set to optimize the fit, such as eta, lambda, momentum.
+        #DNN_numpy[i][j] = fitted
+        train_pred = FFNN1.predict(X_train) #creates a prediction from the training. Hopefully this is working, but not completely sure.
+        test_pred = FFNN1.predict(X_test)
+        #score = FFNN1._accuracy(y,y2) #supposed to give accuracy score of the fit, returns 0
+
+        MSE_train = mean_squared_error(y_train, train_pred) #return MSE of the fit.
+        MSE_test = mean_squared_error(y_test, test_pred)
         
-    y2 = FFNN1.predict(X) #creates a prediction from the training. Hopefully this is working, but not completely sure.
-    
-    score = FFNN1._accuracy(y,y2) #supposed to give accuracy score of the fit, returns 0
+        train_accuracy[i][j] = MSE_train
+        test_accuracy[i][j] = MSE_test
+        print("Learning rate  = ", etaa)
+        print("Lambda = ", lmbd)
+        print("Accuracy score on test set: ", mean_squared_error(y_test, test_pred))
 
-    MSE = mean_squared_error(y, y2) #return MSE of the fit.
-    MSElist.append(MSE) #add to list for plotting
 
-print(scores) #prints scores, although not sure how to use them yet
+"""
+for i in range(len(eta_vals)):
+    for j in range(len(lmbd_vals)):
+        dnn = DNN_numpy[i][j]
+        train_pred = dnn.predict(X_train) 
+        test_pred = dnn.predict(X_test)
+        train_accuracy[i][j] = mean_squared_error(y_train, train_pred)
+        test_accuracy[i][j] = mean_squared_error(y_test, test_pred)
+"""        
+fig, ax = plt.subplots(figsize = (10, 10))
+sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis_r", xticklabels=lmbd_vals, yticklabels=eta_vals)
+ax.set_title("Training Accuracy")
+ax.set_ylabel("eta")
+ax.set_xlabel("epochs")
+plt.show()
+
+fig, ax = plt.subplots(figsize = (10, 10))
+sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis_r", xticklabels=lmbd_vals, yticklabels=eta_vals)
+ax.set_title("Test Accuracy")
+ax.set_ylabel("eta")
+ax.set_xlabel("epochs")
+plt.show()
+
+
+"""
+#print(scores) #prints scores, although not sure how to use them yet
 plt.plot(x,y, label = 'data') #plot data
 plt.plot(x,y2, 'ro', label = 'fit' ) #plot fit
 plt.legend()
 plt.show()
 #plt.plot(np.log10(varlist),MSElist) #plot MSE for parameter testing
+"""
