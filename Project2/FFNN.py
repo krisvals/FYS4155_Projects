@@ -347,10 +347,11 @@ class FFNN:
             self.schedulers_weight.append(copy(scheduler))
             self.schedulers_bias.append(copy(scheduler))
 
-        print(f"{scheduler.__class__.__name__}: Eta={scheduler.eta}, Lambda={lam}")
+        #print(f"{scheduler.__class__.__name__}: Eta={scheduler.eta}, Lambda={lam}")
 
         try:
             for e in range(epochs):
+                
                 for i in range(batches):
                     # allows for minibatch gradient descent
                     if i == batches - 1:
@@ -373,9 +374,15 @@ class FFNN:
 
                 # computing performance metrics
                 pred_train = self.predict(X)
+                
                 train_error = cost_function_train(pred_train)
+                
 
                 train_errors[e] = train_error
+                if(abs(train_errors[e]-train_errors[e-1]) <= 1E-8):
+                    print(e)
+                    break;
+                    
                 if val_set:
                     
                     pred_val = self.predict(X_val)
@@ -390,21 +397,21 @@ class FFNN:
                         val_accs[e] = val_acc
 
                 # printing progress bar
-                progression = e / epochs
-                print_length = self._progress_bar(
-                    progression,
-                    train_error=train_errors[e],
-                    train_acc=train_accs[e],
-                    val_error=val_errors[e],
-                    val_acc=val_accs[e],
-                )
+                #progression = e / epochs
+                #print_length = self._progress_bar(
+                    #progression,
+                    #train_error=train_errors[e],
+                    #train_acc=train_accs[e],
+                    #val_error=val_errors[e],
+                    #val_acc=val_accs[e],
+                #)
         except KeyboardInterrupt:
             # allows for stopping training at any point and seeing the result
             pass
 
         # visualization of training progression (similiar to tensorflow progression bar)
-        sys.stdout.write("\r" + " " * print_length)
-        sys.stdout.flush()
+        #sys.stdout.write("\r" + " " * print_length)
+        #sys.stdout.flush()
         self._progress_bar(
             1,
             train_error=train_errors[e],
@@ -412,7 +419,7 @@ class FFNN:
             val_error=val_errors[e],
             val_acc=val_accs[e],
         )
-        sys.stdout.write("")
+        #sys.stdout.write("")
 
         # return performance metrics for the entire run
         scores = dict()
@@ -518,7 +525,7 @@ class FFNN:
         # The feed forward algorithm
         for i in range(len(self.weights)):
             if i < len(self.weights) - 1:
-                print(a)
+                #print(a)
                 z = a @ self.weights[i]
                 self.z_matrices.append(z)
                 a = self.hidden_func(z)
@@ -622,6 +629,7 @@ class FFNN:
         ------------
             A floating point number representing the percentage of correctly classified instances.
         """
+        print(1)
         assert prediction.size == target.size
         return np.average((target == prediction))
     def _set_classification(self):
@@ -650,15 +658,15 @@ class FFNN:
         arrow = ">" if num_equals > 0 else ""
         bar = "[" + "=" * (num_equals - 1) + arrow + "-" * num_not + "]"
         perc_print = self._format(progression * 100, decimals=5)
-        line = f"  {bar} {perc_print}% "
+        #line = f"  {bar} {perc_#}% "
 
         for key in kwargs:
             if not np.isnan(kwargs[key]):
                 value = self._format(kwargs[key], decimals=4)
-                line += f"| {key}: {value} "
-        sys.stdout.write("\r" + line)
-        sys.stdout.flush()
-        return len(line)
+                #line += f"| {key}: {value} "
+        #sys.stdout.write("\r" + line)
+        #sys.stdout.flush()
+        #return len(line)
 
     def _format(self, value, decimals=4):
         """
@@ -708,7 +716,7 @@ def accuracy_score_numpy(Y_test, Y_pred):
 
 #initialize parameters. Might need some normalization.
 
-poly_deg = 6 #polynomial degree
+poly_deg = 7 #polynomial degree
 xlim = 1.0 #range of x values goes from 0 to xlim
 np.random.seed(42) #creates random seed to have reproducible results
 
@@ -728,32 +736,34 @@ X_train, X_test, y_train, y_test = train_test_split(X,y) # splitting data
 
 n_output_nodes = 1 #s et to 1 for regression
 n_input_nodes = X_train.shape[1] # set number of input nodes
-n_hidden_nodes = 5 # set number of hidden nodes
-
-FFNN1 = FFNN(dimensions = [n_input_nodes,n_hidden_nodes,n_output_nodes],hidden_func = sigmoid) #creates an object of the neural network
-FFNN1.reset_weights() #reset weights, as to start fresh every time
 
 scheduler = Adagrad(eta=1e-3) # creates a schedueler which controls the learning rate decay. Set this equal to the scheduele mode, i.e. Adagrad, Constant, ADAM, with the paramaters requiered for this scheduele
 
 varlist = np.logspace(-9,-.0005, 1) #list of variables to be tested. Set third float to 1 if nothing is to be tested
 MSElist = [] #list of MSE. Not sure if this is usefull.
+n_hidden_nodes = 5 # set number of hidden nodes
 
-M = 10
-lmbd_vals = [1E2,2E2,3E2,4E2,5E3] 
-eta_vals = [1e-20, 1e-16, 1e-14, 1e-10, 1e-1] #Can be adjusted, but code gets very slow for eta below 1e-10
+FFNN1 = FFNN(dimensions = [n_input_nodes,n_hidden_nodes,n_output_nodes],hidden_func = sigmoid ,  seed = 42) #creates an object of the neural network
+FFNN1.reset_weights() #reset weights, as to start fresh every time
+M = int(n/200)
+lmbd_vals =  [1]
+eta_vals = [1] #Can be adjusted, but code gets very slow for eta below 1e-10
 epochs = 100
 
 DNN_numpy = np.zeros((len(eta_vals), len(lmbd_vals)), dtype=object)
 train_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
 test_accuracy = np.zeros((len(eta_vals), len(lmbd_vals)))
 
-for i, etaa in enumerate(eta_vals):
-    for j, lmbd in enumerate(lmbd_vals): # starts a loop to test variables.
+
+for i, etaa in enumerate(eta_vals):     
+    for j, mom in enumerate(lmbd_vals): # starts a loop to test variables.
+        
         FFNN1.reset_weights() #important to reset weights, as to not generate data based on previous runs
-        FFNN1.fit(X_train,y_train, Adagrad(eta = (etaa)), epochs = int(lmbd)) #train data to the fit. Using the training data here, not sure if this is the best option. Many parameters can be set to optimize the fit, such as eta, lambda, momentum.
+        FFNN1.fit(X_train,y_train, Adam(1E-2,0.2,0.5), epochs = int(1E4), lam = 1E-6, batches = M) #train data to the fit. Using the training data here, not sure if this is the best option. Many parameters can be set to optimize the fit, such as eta, lambda, momentum.
         #DNN_numpy[i][j] = fitted
         train_pred = FFNN1.predict(X_train) #creates a prediction from the training. Hopefully this is working, but not completely sure.
         test_pred = FFNN1.predict(X_test)
+        plot_pred = FFNN1.predict(X)
         #score = FFNN1._accuracy(y,y2) #supposed to give accuracy score of the fit, returns 0
 
         MSE_train = mean_squared_error(y_train, train_pred) #return MSE of the fit.
@@ -762,7 +772,7 @@ for i, etaa in enumerate(eta_vals):
         train_accuracy[i][j] = MSE_train
         test_accuracy[i][j] = MSE_test
         print("Learning rate  = ", etaa)
-        print("Lambda = ", lmbd)
+        print("Lambda = ", mom)
         print("Accuracy score on test set: ", mean_squared_error(y_test, test_pred))
 
 
@@ -774,27 +784,41 @@ for i in range(len(eta_vals)):
         test_pred = dnn.predict(X_test)
         train_accuracy[i][j] = mean_squared_error(y_train, train_pred)
         test_accuracy[i][j] = mean_squared_error(y_test, test_pred)
-"""        
+"""    
+fnt = 18   
 fig, ax = plt.subplots(figsize = (10, 10))
 sns.heatmap(train_accuracy, annot=True, ax=ax, cmap="viridis_r", xticklabels=lmbd_vals, yticklabels=eta_vals)
-ax.set_title("Training Accuracy")
-ax.set_ylabel("eta")
-ax.set_xlabel("epochs")
+ax.set_title("MSE for Adam with $\eta$ = 1E-2", fontsize = fnt)
+ax.set_xticklabels(lmbd_vals,fontsize = fnt)
+ax.set_yticklabels(eta_vals,fontsize = fnt)
+
+ax.set_ylabel("rho", fontsize = fnt)
+ax.set_xlabel("rho2", fontsize = fnt)
 plt.show()
+
 
 fig, ax = plt.subplots(figsize = (10, 10))
 sns.heatmap(test_accuracy, annot=True, ax=ax, cmap="viridis_r", xticklabels=lmbd_vals, yticklabels=eta_vals)
-ax.set_title("Test Accuracy")
-ax.set_ylabel("eta")
-ax.set_xlabel("epochs")
+ax.set_title("MSE for Adam with $\eta$ = 1E-2", fontsize =fnt)
+ax.set_xticklabels(lmbd_vals,fontsize = fnt)
+ax.set_yticklabels(eta_vals,fontsize = fnt)
+
+ax.set_ylabel("rho", fontsize = fnt)
+ax.set_xlabel("rho2", fontsize = fnt)
 plt.show()
 
 
-"""
+
 #print(scores) #prints scores, although not sure how to use them yet
-plt.plot(x,y, label = 'data') #plot data
-plt.plot(x,y2, 'ro', label = 'fit' ) #plot fit
+plt.plot(x,y, '--',label = 'data', linewidth = 10) #plot data
+plt.plot(x,plot_pred, 'r', linewidth = 3, label = 'fit', alpha = 1 ) #plot fit
+plt.xlabel('x', fontsize = fnt)
+plt.ylabel('y', fontsize = fnt)
+plt.title('Fit of the Franke Function', fontsize = fnt)
+plt.xticks(fontsize = fnt-6)
+plt.yticks(fontsize = fnt-4)
 plt.legend()
+plt.savefig('FrankeFit.pdf')
 plt.show()
+
 #plt.plot(np.log10(varlist),MSElist) #plot MSE for parameter testing
-"""
