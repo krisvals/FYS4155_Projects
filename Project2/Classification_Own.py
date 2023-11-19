@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Oct 27 14:30:35 2023
-
-@author: erlendou
-"""
-
 import math
 import autograd.numpy as np
 import sys
@@ -777,7 +770,6 @@ for i, etaa in enumerate(eta_vals):
         
         FFNN1.reset_weights() #important to reset weights, as to not generate data based on previous runs
         FFNN1.fit(X_train,y_train, Adam(eta = (etaa), rho=0.9, rho2=0.999), epochs = lmbd, lam = 0.01)
-        
         train_pred = FFNN1.predict(X_train) #creates a prediction from the training
         test_pred = FFNN1.predict(X_test)
         for k in range(len(train_pred)): 
