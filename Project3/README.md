@@ -1,4 +1,6 @@
 # Project 3: Regression of Hydrologic Data
 Files:
-* **Data_Visualization.ipynb**: Visualization of the dataset
+* **Project3.ipynb**: The task
+* **Project3_data.csv**: The data used in the project
 * **Regression.ipynb**: Random Forest Regression and Gradient Boosting Regression code
+* **FFNN.py**: Feed-forward neural network code
