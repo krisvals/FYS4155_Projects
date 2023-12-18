@@ -1,7 +1,8 @@
 # Project 3: Regression of Hydrologic Data
 Files:
 * **Dataset.ipynb**: Dataset representation
-* **Project3.ipynb**: The task
-* **Project3_data.csv**: The data used in the project
+* **Dataset_Processing.ipynb**: Gridded dataset processing to point location timeseries
+* **Project3.ipynb**: Description of project tasks
+* **Project3_data.csv**: Input data used for Dataset.ipynb, Regression.ipynb, and FFNN.py
 * **Regression.ipynb**: Random Forest Regression and Gradient Boosting Regression code
 * **FFNN.py**: Feed-forward neural network code
